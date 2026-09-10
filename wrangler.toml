@@ -1,0 +1,19 @@
+name = "notify-gateway-app"
+main = "src/index.ts"
+compatibility_date = "2025-10-08"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+APP_NAME = "notify-gateway"
+RATE_LIMIT_IP = "60"
+RATE_LIMIT_PROJECT = "120"
+
+[[kv_namespaces]]
+binding = "NOTIFY_KV"
+id = "834580b50152449d99d2991c53dac87d"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "notify-tasks"
+database_id = "39c67587-11eb-4998-9e64-af77a0fe2a3f"
+migrations_dir = "migrations"

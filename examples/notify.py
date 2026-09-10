@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""Call notify-gateway from a renewal or backup job.
+
+Field list, errors, and GitHub Actions wiring: docs/renew-client.md
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import urllib.request
+
+NOTIFY_URL = os.environ.get("NOTIFY_URL", "http://127.0.0.1:43147/api/notify")
+NOTIFY_TOKEN = os.environ.get("NOTIFY_TOKEN", "")
+
+
+def notify(title, content, level="success", details=None, source="puratya-renew"):
+    payload = {
+        "source": source,
+        "title": title,
+        "content": content,
+        "level": level,
+        "channel": ["email", "telegram"],
+        "data": details or {"total": 0, "success": 0, "failed": 0, "details": []},
+    }
+    req = urllib.request.Request(
+        NOTIFY_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {NOTIFY_TOKEN}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+if __name__ == "__main__":
+    print(
+        json.dumps(
+            notify(
+                "MWS 续期完成",
+                "续期完成报告",
+                level="partial",
+                details={
+                    "total": 5,
+                    "success": 3,
+                    "failed": 2,
+                    "details": [
+                        {"id": "bot_001", "name": "Bot A", "status": "success"},
+                        {"id": "bot_002", "name": "Bot B", "status": "failed", "error": "HTTP 403"},
+                        {"id": "site_001", "name": "Site C", "status": "partial", "message": "1/2 续期成功"},
+                    ],
+                },
+            ),
+            ensure_ascii=False,
+            indent=2,
+        )
+    )

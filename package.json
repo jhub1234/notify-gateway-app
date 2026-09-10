@@ -1,0 +1,37 @@
+{
+  "name": "notify-gateway-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Notification gateway for renewal and backup jobs — email + Telegram via Cloudflare Workers.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 43147 --ip 0.0.0.0",
+    "start": "wrangler dev --port 43147 --ip 0.0.0.0",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "deploy": "npm run db:migrate && wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply notify-tasks --remote",
+    "db:migrate:local": "wrangler d1 migrations apply notify-tasks --local",
+    "db:init": "wrangler d1 execute notify-tasks --local --file=./schema.sql",
+    "cf:setup": "node scripts/ensure-cf-resources.mjs && npm run deploy"
+  },
+  "cloudflare": {
+    "bindings": {
+      "JWT_SECRET": {
+        "description": "登录 Cookie 的签名密钥。用 `openssl rand -base64 48` 生成一串，只放 Cloudflare Secret，不要写进仓库。"
+      },
+      "KEY_HMAC_SECRET": {
+        "description": "项目 API Key 的 HMAC 密钥。另生成一串，不要和 JWT_SECRET 相同。"
+      }
+    }
+  },
+  "dependencies": {
+    "hono": "^4.9.8"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.37.0"
+  }
+}
